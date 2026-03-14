@@ -10,7 +10,7 @@ Gem::Specification.new do |spec|
 
   spec.summary       = 'Attention task-switching cost modeling for LegionIO'
   spec.description   = 'Models the cognitive cost of switching between tasks including residual activation, ' \
-                        'warmup time, context restoration, and practice effects.'
+                       'warmup time, context restoration, and practice effects.'
   spec.homepage      = 'https://github.com/LegionIO/lex-attention-switching'
   spec.license       = 'MIT'
 

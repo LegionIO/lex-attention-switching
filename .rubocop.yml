@@ -8,6 +8,9 @@ Style/Documentation:
 Naming/PredicateMethod:
   Enabled: false
 
+Naming/PredicatePrefix:
+  Enabled: false
+
 Metrics/ClassLength:
   Max: 150
 

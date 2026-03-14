@@ -100,14 +100,14 @@ module Legion
 
           def switching_report
             {
-              total_tasks:        @task_sets.size,
-              total_switches:     @switch_events.size,
-              active_task:        active_task&.to_h,
+              total_tasks:         @task_sets.size,
+              total_switches:      @switch_events.size,
+              active_task:         active_task&.to_h,
               average_switch_cost: average_switch_cost,
-              costly_count:       costly_switches.size,
-              cheap_count:        cheap_switches.size,
-              residual_count:     tasks_with_residual.size,
-              recent_switches:    recent_switches(limit: 5).map(&:to_h)
+              costly_count:        costly_switches.size,
+              cheap_count:         cheap_switches.size,
+              residual_count:      tasks_with_residual.size,
+              recent_switches:     recent_switches(limit: 5).map(&:to_h)
             }
           end
 
@@ -125,30 +125,30 @@ module Legion
 
           def perform_switch(current, target)
             current.deactivate!
-
-            type_cost = current.task_type == target.task_type ? 0.0 : 0.15
-            complexity_cost = ((current.complexity - target.complexity).abs * 0.3).round(10)
-            residual = current.residual_activation
-            context_cost = CONTEXT_RESTORATION_COST * target.complexity
-            practice_bonus = [target.activation_count * PRACTICE_REDUCTION, 0.2].min
-
-            total_cost = (DEFAULT_SWITCH_COST + type_cost + complexity_cost +
-                          (residual * 0.2) + context_cost - practice_bonus).clamp(0.0, 1.0).round(10)
-
+            cost = compute_switch_cost(current, target)
             warmup = ((1.0 - target.readiness) * target.complexity).round(10)
-
             target.activate!
 
             event = SwitchEvent.new(
               from_task_id:          current.id,
               to_task_id:            target.id,
-              switch_cost:           total_cost,
-              residual_interference: residual,
+              switch_cost:           cost,
+              residual_interference: current.residual_activation,
               warmup_needed:         warmup
             )
             prune_events_if_needed
             @switch_events << event
             event
+          end
+
+          def compute_switch_cost(current, target)
+            type_cost = current.task_type == target.task_type ? 0.0 : 0.15
+            complexity_cost = ((current.complexity - target.complexity).abs * 0.3).round(10)
+            context_cost = CONTEXT_RESTORATION_COST * target.complexity
+            practice_bonus = [target.activation_count * PRACTICE_REDUCTION, 0.2].min
+
+            (DEFAULT_SWITCH_COST + type_cost + complexity_cost +
+             (current.residual_activation * 0.2) + context_cost - practice_bonus).clamp(0.0, 1.0).round(10)
           end
 
           def prune_tasks_if_needed
